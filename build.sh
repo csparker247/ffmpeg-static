@@ -23,12 +23,14 @@ cd $BUILD_DIR
 ../fetchurl "http://downloads.xiph.org/releases/ogg/libogg-1.3.0.tar.gz"
 ../fetchurl "http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.3.tar.gz"
 ../fetchurl "http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2"
-# ../fetchurl "http://webm.googlecode.com/files/libvpx-v1.0.0.tar.bz2"
-../fetchurl "http://downloads.sourceforge.net/project/faac/faac-src/faac-1.28/faac-1.28.tar.bz2?use_mirror=auto"
-../fetchurl "ftp://ftp.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20120425-2245.tar.bz2"
+../fetchurl "http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2"
+# ../fetchurl "http://downloads.sourceforge.net/project/faac/faac-src/faac-1.28/faac-1.28.tar.bz2?use_mirror=auto"
+../fetchurl "http://downloads.sourceforge.net/project/opencore-amr/fdk-aac/fdk-aac-0.1.0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fopencore-amr%2Ffiles%2Ffdk-aac%2F&ts=1352301762&use_mirror=iweb"
+../fetchurl "ftp://ftp.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20121106-2245.tar.bz2"
 ../fetchurl "http://downloads.xvid.org/downloads/xvidcore-1.3.2.tar.gz"
 ../fetchurl "http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz?use_mirror=auto"
-../fetchurl "http://www.ffmpeg.org/releases/ffmpeg-0.10.2.tar.gz"
+../fetchurl "http://ffmpeg.org/releases/ffmpeg-1.0.tar.gz"
+
 
 echo "*** Building yasm ***"
 cd "$BUILD_DIR/yasm-1.2.0"
@@ -67,17 +69,21 @@ cd "$BUILD_DIR/libtheora-1.1.1"
 ./configure --prefix=$TARGET_DIR --enable-static --disable-shared
 make -j 4 && make install
 
-#echo "*** Building livpx ***"
-#cd "$BUILD_DIR/libvpx-v1.0.0"
-#./configure --prefix=$TARGET_DIR --disable-shared
-#make -j 4 && make install
+echo "*** Building livpx ***"
+cd "$BUILD_DIR/libvpx-v1.1.0"
+./configure --prefix=$TARGET_DIR --disable-shared
+make -j 4 && make install
 
-echo "*** Building faac ***"
-cd "$BUILD_DIR/faac-1.28"
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
+# echo "*** Building faac ***"
+# cd "$BUILD_DIR/faac-1.28"
+# ./configure --prefix=$TARGET_DIR --enable-static --disable-shared
 # FIXME: gcc incompatibility, does not work with log()
+# sed -i -e "s|^char \*strcasestr.*|//\0|" common/mp4v2/mpeg4ip.h
+# make -j 4 && make install
 
-sed -i -e "s|^char \*strcasestr.*|//\0|" common/mp4v2/mpeg4ip.h
+echo "*** Building fdk-aac ***"
+cd "$BUILD_DIR/fdk-aac-0.1.0"
+./configure --prefix=$TARGET_DIR --enable-static --disable-shared
 make -j 4 && make install
 
 cd "$BUILD_DIR/libav-0.8.3"
@@ -85,7 +91,7 @@ cd "$BUILD_DIR/libav-0.8.3"
 make -j 4 && make install
 
 echo "*** Building x264 ***"
-cd "$BUILD_DIR/x264-snapshot-20120425-2245"
+cd "$BUILD_DIR/x264-snapshot-20121106-2245"
 CFLAGS="-I$TARGET_DIR/lavf/include" LDFLAGS="-L$TARGET_DIR/lavf/lib -framework CoreFoundation -framework CoreVideo -framework VideoDecodeAcceleration" ./configure --prefix=$TARGET_DIR --host=x86_64-apple-darwin --enable-static
 make -j 4 && make install
 
@@ -97,7 +103,7 @@ make -j 4 && make install
 
 echo "*** Building lame ***"
 cd "$BUILD_DIR/lame-3.99.5"
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
+./configure --prefix=$TARGET_DIR --enable-static --enable-shared
 make -j 4 && make install
 
 # FIXME: only OS-sepcific
@@ -106,7 +112,7 @@ make -j 4 && make install
 
 # FFMpeg
 echo "*** Building FFmpeg ***"
-cd "$BUILD_DIR/ffmpeg-0.10.2"
-patch -p1 <../../ffmpeg_config.patch
-CFLAGS="-I$TARGET_DIR/include" LDFLAGS="-L$TARGET_DIR/lib -lm" ./configure --cc=clang --prefix=${OUTPUT_DIR:-$TARGET_DIR} --extra-version=static --disable-debug --disable-shared --enable-static --extra-cflags=--static --disable-ffplay --disable-ffserver --disable-doc --enable-gpl --enable-pthreads --enable-postproc --enable-gray --enable-runtime-cpudetect --enable-libfaac --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-bzlib --enable-zlib --enable-nonfree --enable-version3 --disable-devices
+cd "$BUILD_DIR/ffmpeg-1.0"
+# patch -p1 <../../ffmpeg_config.patch
+CFLAGS="-I$TARGET_DIR/include" LDFLAGS="-L$TARGET_DIR/lib -lm" ./configure --cc=clang --prefix=${OUTPUT_DIR:-$TARGET_DIR} --extra-version=static --disable-debug --disable-shared --enable-static --extra-cflags=--static --disable-ffplay --disable-ffserver --disable-doc --enable-gpl --enable-pthreads --enable-postproc --enable-gray --enable-runtime-cpudetect --enable-libvpx --enable-libfdk-aac --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-bzlib --enable-zlib --enable-nonfree --enable-version3 --disable-devices
 make -j 4 && make install
