@@ -53,7 +53,7 @@ cd $BUILD_DIR
 ../fetchurl "http://downloads.xvid.org/downloads/xvidcore-1.3.2.tar.gz"
 ../fetchurl "http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz"
 ../fetchurl "http://downloads.xiph.org/releases/opus/opus-1.1.tar.gz"
-../fetchurl "http://www.ffmpeg.org/releases/ffmpeg-2.1.1.tar.bz2"
+../fetchurl "http://www.ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2"
 
 echo "*** Building yasm ***"
 cd $BUILD_DIR/yasm*
@@ -110,7 +110,7 @@ cd "$BUILD_DIR/fdk-aac-0.1.0"
 make -j 4 && make install
 
 echo "*** Building libav ***"
-cd "$BUILD_DIR/libav-9.5"
+cd $BUILD_DIR/libav*
 ./configure --prefix=$TARGET_DIR/lavf --enable-gpl --disable-debug --enable-runtime-cpudetect
 make -j 4 && make install
 
