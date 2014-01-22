@@ -8,14 +8,8 @@ just run ./build.sh, wait and you should get the ffmpeg binary in target/bin
 
 Build dependencies
 ------------------
-
-    # Debian & Ubuntu
-    $ apt-get install build-essential curl tar
-
-	# OS X
-	# install XCode, it can be found at http://developer.apple.com/
-	# (apple login needed)
-	# <FIXME???>
+ * Xcode and the Command Line Utilities
+ * pkg-config (Install using Homebrew)
 
 Build & "install"
 -----------------
@@ -29,18 +23,6 @@ NOTE: If you're going to use the h264 presets, make sure to copy them along the 
     $ mkdir ~/.ffmpeg
     $ cp ./target/share/ffmpeg/*.ffpreset ~/.ffmpeg
 
-Debug
------
-
-On the top-level of the project, run:
-
-	$ . env.source
-	
-You can then enter the source folders and make the compilation yourself
-
-	$ cd build/ffmpeg-*
-	$ ./configure --prefix=$TARGET_DIR #...
-	# ...
 
 Remaining links
 ---------------
@@ -56,12 +38,4 @@ means the executable won't work across distributions or even across releases.
     $ otool -L ffmpeg 
 	ffmpeg:
 		/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 125.2.0)
-
-TODO
-----
-
- * Add some tests to check that video output is correctly generated
-   this would help upgrading the package without too much work
- * OSX's xvidcore does not detect yasm correctly
- * remove remaining libs
  

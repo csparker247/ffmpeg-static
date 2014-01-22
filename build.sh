@@ -3,33 +3,12 @@
 set -e
 set -u
 
-jflag=
-jval=2
-
-while getopts 'j:' OPTION
-do
-  case $OPTION in
-  j)	jflag=1
-        	jval="$OPTARG"
-	        ;;
-  ?)	printf "Usage: %s: [-j concurrency_level] (hint: your cores + 20%%)\n" $(basename $0) >&2
-		exit 2
-		;;
-  esac
-done
-shift $(($OPTIND - 1))
-
-if [ "$jflag" ]
-then
-  if [ "$jval" ]
-  then
-    printf "Option -j specified (%d)\n" $jval
-  fi
-fi
+jval=4
 
 cd `dirname $0`
-ENV_ROOT=`pwd`
-. ./env.source
+ENV_ROOT="$PWD"
+BUILD_DIR="${ENV_ROOT}/build"
+TARGET_DIR="${ENV_ROOT}/target"
 
 rm -rf "$BUILD_DIR" "$TARGET_DIR"
 mkdir -p "$BUILD_DIR" "$TARGET_DIR"
@@ -37,10 +16,16 @@ mkdir -p "$BUILD_DIR" "$TARGET_DIR"
 # NOTE: this is a fetchurl parameter, nothing to do with the current script
 #export TARGET_DIR_DIR="$BUILD_DIR"
 
+export LDFLAGS="-L${TARGET_DIR}/lib"
+export DYLD_LIBRARY_PATH="${TARGET_DIR}/lib"
+export PKG_CONFIG_PATH="$TARGET_DIR/lib/pkgconfig"
+export CFLAGS="-I${TARGET_DIR}/include -mmacosx-version-min=10.6 $LDFLAGS"
+export PATH="${TARGET_DIR}/bin:${PATH}"
+
 echo "#### FFmpeg static build, by STVS SA ####"
 cd $BUILD_DIR
 ../fetchurl "http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz"
-../fetchurl "http://libav.org/releases/libav-snapshot.tar.bz2"
+#../fetchurl "http://libav.org/releases/libav-snapshot.tar.bz2"
 ../fetchurl "http://zlib.net/zlib-1.2.8.tar.gz"
 ../fetchurl "http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
 ../fetchurl "http://downloads.sf.net/project/libpng/libpng15/older-releases/1.5.14/libpng-1.5.14.tar.gz"
@@ -57,94 +42,107 @@ cd $BUILD_DIR
 
 echo "*** Building yasm ***"
 cd $BUILD_DIR/yasm*
-./configure --prefix=$TARGET_DIR
-make -j $jval
+./configure --prefix=${TARGET_DIR} && \
+make -j $jval && \
 make install
 
 echo "*** Building zlib ***"
 cd $BUILD_DIR/zlib*
-./configure --prefix=$TARGET_DIR
-make -j $jval
+./configure --prefix=${TARGET_DIR} && \
+make -j $jval && \
 make install
 
 echo "*** Building bzip2 ***"
 cd $BUILD_DIR/bzip2*
-make
-make install PREFIX=$TARGET_DIR
+make && \
+make install PREFIX=${TARGET_DIR}
 
 echo "*** Building libpng ***"
 cd $BUILD_DIR/libpng*
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+make -j $jval && \
 make install
 
 # Ogg before vorbis
 echo "*** Building libogg ***"
 cd $BUILD_DIR/libogg*
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+make -j $jval && \
 make install
 
 # Vorbis before theora
 echo "*** Building libvorbis ***"
 cd $BUILD_DIR/libvorbis*
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --with-ogg-libraries=${TARGET_DIR}/lib --with-ogg-includes=${TARGET_DIR}/include/ --enable-static --disable-shared && \
+make -j $jval && \
 make install
 
 echo "*** Building libtheora ***"
 cd $BUILD_DIR/libtheora*
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --with-ogg-libraries=${TARGET_DIR}/lib --with-ogg-includes=${TARGET_DIR}/include/ --with-vorbis-libraries=${TARGET_DIR}/lib --with-vorbis-includes=${TARGET_DIR}/include/ --enable-static --disable-shared && \
+make -j $jval && \
 make install
 
 echo "*** Building livpx ***"
 cd $BUILD_DIR/libvpx*
-./configure --prefix=$TARGET_DIR --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --disable-unit-tests --disable-shared && \
+make -j $jval && \
 make install
 
 echo "*** Building fdk-aac ***"
 cd "$BUILD_DIR/fdk-aac-0.1.0"
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j 4 && make install
+./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+make -j 4 && \
+make install
 
-echo "*** Building libav ***"
-cd $BUILD_DIR/libav*
-./configure --prefix=$TARGET_DIR/lavf --enable-gpl --disable-debug --enable-runtime-cpudetect
-make -j 4 && make install
+#echo "*** Building libav ***"
+#cd $BUILD_DIR/libav*
+#./configure --prefix=${TARGET_DIR}/lavf --enable-gpl --disable-debug --enable-runtime-cpudetect
+#make -j 4 && \
+#make install
 
 echo "*** Building x264 ***"
 cd $BUILD_DIR/x264*
-CFLAGS="-I$TARGET_DIR/lavf/include" LDFLAGS="-L$TARGET_DIR/lavf/lib -framework CoreFoundation -framework CoreVideo -framework VideoDecodeAcceleration" ./configure --prefix=$TARGET_DIR --enable-static --disable-shared --disable-avs --disable-opencl
-make -j $jval
+./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+make -j $jval && \
 make install
 
 echo "*** Building xvidcore ***"
 cd "$BUILD_DIR/xvidcore/build/generic"
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+make -j $jval && \
 make install
-#rm $TARGET_DIR/lib/libxvidcore.so.*
+#rm ${TARGET_DIR}/lib/libxvidcore.so.*
 
 echo "*** Building lame ***"
 cd $BUILD_DIR/lame*
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+make -j $jval && \
 make install
 
 echo "*** Building opus ***"
 cd $BUILD_DIR/opus*
-./configure --prefix=$TARGET_DIR --enable-static --disable-shared
-make -j $jval
+./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+make -j $jval && \
 make install
 
-# FIXME: only OS-specific
-rm -f "$TARGET_DIR/lib/*.dylib"
-rm -f "$TARGET_DIR/lib/*.so"
+rm -f "${TARGET_DIR}/lib/*.dylib"
+rm -f "${TARGET_DIR}/lib/*.so"
 
 # FFMpeg
 echo "*** Building FFmpeg ***"
 cd $BUILD_DIR/ffmpeg*
-CFLAGS="-I$TARGET_DIR/include" LDFLAGS="-L$TARGET_DIR/lib -lm" ./configure --prefix=${OUTPUT_DIR:-$TARGET_DIR} --extra-cflags="-I$TARGET_DIR/include -static" --extra-ldflags="-L$TARGET_DIR/lib -lm -Bstatic" --extra-version=static --disable-debug --disable-shared --enable-static --extra-cflags=--static --disable-ffplay --disable-ffserver --disable-doc --enable-gpl --enable-pthreads --enable-postproc --enable-gray --enable-runtime-cpudetect --enable-libfdk-aac --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-bzlib --enable-zlib --enable-nonfree --enable-version3 --enable-libvpx --disable-devices
-make -j $jval && make install
+export LDFLAGS="-L${TARGET_DIR}/lib" 
+export CFLAGS="-I${TARGET_DIR}/include" 
+./configure --prefix=${TARGET_DIR} --arch=x86_64 --disable-debug --disable-shared --enable-static --enable-runtime-cpudetect --enable-gpl --enable-nonfree --enable-version3 \
+--disable-ffplay --disable-ffserver --disable-doc  --enable-pthreads --enable-postproc \
+--enable-libfdk-aac --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-bzlib --enable-zlib --enable-libvpx && \
+make -j $jval && \
+make install
+
+echo "*** Building x264 ***"
+cd $BUILD_DIR/x264*
+make distclean
+CFLAGS="-I${TARGET_DIR}/include" LDFLAGS="-L${TARGET_DIR}/lib -framework CoreFoundation -framework CoreVideo -framework VideoDecodeAcceleration" ./configure --prefix=${TARGET_DIR} --enable-static --disable-shared --disable-avs --disable-opencl && \
+make -j $jval && \
+make install
