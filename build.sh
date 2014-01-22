@@ -3,7 +3,26 @@
 set -e
 set -u
 
+usage() { echo "Usage: $0 [-f]" 1>&2; echo; exit 1; }
+
+while getopts "f" o; do
+    case "${o}" in
+        f)
+            free=1
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
 jval=4
+if [[ $free == "1" ]]; then
+	freeopts=""
+else
+	freeopts="--enable-nonfree --enable-libfdk-aac"
+fi
 
 cd `dirname $0`
 ENV_ROOT="$PWD"
@@ -25,7 +44,6 @@ export PATH="${TARGET_DIR}/bin:${PATH}"
 echo "#### FFmpeg static build, by STVS SA ####"
 cd $BUILD_DIR
 ../fetchurl "http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz"
-#../fetchurl "http://libav.org/releases/libav-snapshot.tar.bz2"
 ../fetchurl "http://zlib.net/zlib-1.2.8.tar.gz"
 ../fetchurl "http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
 ../fetchurl "http://downloads.sf.net/project/libpng/libpng15/older-releases/1.5.14/libpng-1.5.14.tar.gz"
@@ -89,17 +107,13 @@ cd $BUILD_DIR/libvpx*
 make -j $jval && \
 make install
 
-echo "*** Building fdk-aac ***"
-cd "$BUILD_DIR/fdk-aac-0.1.0"
-./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
-make -j 4 && \
-make install
-
-#echo "*** Building libav ***"
-#cd $BUILD_DIR/libav*
-#./configure --prefix=${TARGET_DIR}/lavf --enable-gpl --disable-debug --enable-runtime-cpudetect
-#make -j 4 && \
-#make install
+if [[ $free == "" ]]; then
+	echo "*** Building fdk-aac ***"
+	cd "$BUILD_DIR/fdk-aac-0.1.0"
+	./configure --prefix=${TARGET_DIR} --enable-static --disable-shared && \
+	make -j 4 && \
+	make install
+fi
 
 echo "*** Building x264 ***"
 cd $BUILD_DIR/x264*
@@ -134,9 +148,9 @@ echo "*** Building FFmpeg ***"
 cd $BUILD_DIR/ffmpeg*
 export LDFLAGS="-L${TARGET_DIR}/lib" 
 export CFLAGS="-I${TARGET_DIR}/include" 
-./configure --prefix=${TARGET_DIR} --arch=x86_64 --disable-debug --disable-shared --enable-static --enable-runtime-cpudetect --enable-gpl --enable-nonfree --enable-version3 \
+./configure --prefix=${TARGET_DIR} --arch=x86_64 --disable-debug --disable-shared --enable-static --enable-runtime-cpudetect --enable-gpl --enable-version3 \
 --disable-ffplay --disable-ffserver --disable-doc  --enable-pthreads --enable-postproc \
---enable-libfdk-aac --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-bzlib --enable-zlib --enable-libvpx && \
+--enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-bzlib --enable-zlib --enable-libvpx $freeopts && \
 make -j $jval && \
 make install
 
