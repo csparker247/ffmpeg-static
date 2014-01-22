@@ -4,6 +4,7 @@ set -e
 set -u
 
 usage() { echo "Usage: $0 [-f]" 1>&2; echo; exit 1; }
+free=""
 
 while getopts "f" o; do
     case "${o}" in
