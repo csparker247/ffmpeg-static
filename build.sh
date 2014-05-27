@@ -51,7 +51,7 @@ cd $BUILD_DIR
 ../fetchurl "http://downloads.xiph.org/releases/ogg/libogg-1.3.1.tar.gz"
 ../fetchurl "http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.3.tar.gz"
 ../fetchurl "http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2"
-../fetchurl "http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2"
+../fetchurl "https://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2"
 ../fetchurl "http://downloads.sourceforge.net/project/opencore-amr/fdk-aac/fdk-aac-0.1.0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fopencore-amr%2Ffiles%2Ffdk-aac%2F&ts=1352301762&use_mirror=iweb"
 ../fetchurl "ftp://ftp.videolan.org/pub/x264/snapshots/last_x264.tar.bz2"
 ../fetchurl "http://downloads.xvid.org/downloads/xvidcore-1.3.2.tar.gz"
