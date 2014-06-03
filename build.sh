@@ -98,6 +98,8 @@ make install
 
 echo "*** Building libtheora ***"
 cd $BUILD_DIR/libtheora*
+perl -p -i -e "s/-falign-loops=16//g" configure
+perl -p -i -e "s/-fforce-addr//g"     configure
 ./configure --prefix=${TARGET_DIR} --with-ogg-libraries=${TARGET_DIR}/lib --with-ogg-includes=${TARGET_DIR}/include/ --with-vorbis-libraries=${TARGET_DIR}/lib --with-vorbis-includes=${TARGET_DIR}/include/ --enable-static --disable-shared && \
 make -j $jval && \
 make install
