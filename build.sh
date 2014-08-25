@@ -156,10 +156,3 @@ export CFLAGS="-I${TARGET_DIR}/include"
 --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-bzlib --enable-zlib --enable-libvpx $freeopts && \
 make -j $jval && \
 make install
-
-echo "*** Building x264 ***"
-cd $BUILD_DIR/x264*
-make distclean
-CFLAGS="-I${TARGET_DIR}/include" LDFLAGS="-L${TARGET_DIR}/lib -framework CoreFoundation -framework CoreVideo -framework VideoDecodeAcceleration" ./configure --prefix=${TARGET_DIR} --enable-static --disable-shared --disable-avs --disable-opencl && \
-make -j $jval && \
-make install
