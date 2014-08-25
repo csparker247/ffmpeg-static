@@ -74,6 +74,7 @@ tmp_file="$TMP_DIR/$filename"
 cache_file="$CACHE_DIR/$filename"
 
 mkdir -p "$CACHE_DIR"
+find "$CACHE_DIR" ! -path "$CACHE_DIR" -type d -maxdepth 1 -mtime +15 -exec rm -rf '{}' '+'
 
 # Fetch
 if [ "$CACHE" -eq 0 ] || [ ! -f "$cache_file" ]; then
